@@ -1,0 +1,135 @@
+.menu-page {
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.menu-header h1 {
+  font-size: 48px;
+  font-weight: 900;
+  color: #2d2d2d;
+  margin-bottom: 15px;
+}
+
+.menu-header p {
+  font-size: 18px;
+  color: #666;
+}
+
+.menu-categories {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+}
+
+.category-btn {
+  padding: 12px 24px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-btn:hover {
+  border-color: #d32f2f;
+  color: #d32f2f;
+}
+
+.category-btn.active {
+  background: #d32f2f;
+  border-color: #d32f2f;
+  color: white;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.menu-item {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-5px);
+}
+
+.item-image {
+  font-size: 80px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.item-image img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.item-info h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 10px;
+}
+
+.item-description {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.restaurant-name {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.rating {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d32f2f;
+}
+
+.add-to-cart {
+  width: 100%;
+  padding: 12px;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.add-to-cart:hover {
+  background: #b71c1c;
+}

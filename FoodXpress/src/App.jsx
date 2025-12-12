@@ -6,6 +6,11 @@ import './styles/global.css';
 import { Navbar, Header, HomePage } from './modules/home-navigation';
 import { ErrorBoundary } from './shared';
 
+// Page imports
+import Menu from './pages/Menu/Menu';
+import Restaurants from './pages/Restaurants/Restaurants';
+import Offers from './pages/Offers/Offers';
+
 function AppContent() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
@@ -16,9 +21,9 @@ function AppContent() {
       {isHomePage && <Header />}
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/menu" element={<div>Menu Page - Coming Soon</div>} />
-        <Route path="/restaurants" element={<div>Restaurants Page - Coming Soon</div>} />
-        <Route path="/offers" element={<div>Offers Page - Coming Soon</div>} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/restaurants" element={<Restaurants />} />
+        <Route path="/offers" element={<Offers />} />
         <Route path="/cart" element={<div>Cart Page - Coming Soon</div>} />
       </Routes>
     </ErrorBoundary>
