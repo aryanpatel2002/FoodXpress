@@ -11,12 +11,5 @@ export { default as HowItWorks } from './components/HowItWorks.jsx';
 export { default as TopRestaurants } from './components/TopRestaurants.jsx';
 export { default as Testimonials } from './components/Testimonials.jsx';
 
-// Hooks
-export { useNavigation } from './hooks/useNavigation.jsx';
-export { useMenu } from './hooks/useMenu.jsx';
-
 // Services
 export { default as ApiService } from './services/apiService.jsx';
-
-// Utils
-export * from './utils/navigationUtils.jsx';
