@@ -1,16 +1,20 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useOrdersApi } from './api/useOrdersApi.js'
 import OrderRow from './components/OrderRow.jsx'
+import OrderDetailsModal from './components/OrderDetailsModal.jsx'
+import PremiumSelect from '../../../components/ui/PremiumSelect.jsx'
 
 function RestaurantOrders() {
   const { getByRestaurant, accept, reject, updateStatus } = useOrdersApi()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('date-recent')
+  const [selectedDate, setSelectedDate] = useState('')
+  const [orderType, setOrderType] = useState('all')
+  const [status, setStatus] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedOrder, setSelectedOrder] = useState(null)
   const restaurantId = 2
   const hasLoaded = useRef(false)
 
@@ -19,9 +23,11 @@ function RestaurantOrders() {
     hasLoaded.current = true
     
     loadOrders()
-    const interval = setInterval(loadOrders, 10000)
-    return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [orderType, selectedDate, status])
 
   const sortOrders = (ordersToSort, sort) => {
     const sorted = [...ordersToSort]
@@ -39,31 +45,32 @@ function RestaurantOrders() {
     }
   }
 
-  const filterOrders = (ordersToFilter) => {
-    let filtered = ordersToFilter
+  const filterAndSortOrders = useMemo(() => {
+    let filtered = orders
+    
+    if (orderType === 'active') {
+      filtered = filtered.filter(o => ['pending', 'confirmed', 'preparing', 'outfordelivery'].includes(o.status?.toLowerCase()))
+    } else if (orderType === 'completed') {
+      filtered = filtered.filter(o => ['delivered', 'rejected', 'cancelled'].includes(o.status?.toLowerCase()))
+    }
+    
+    if (status !== 'all') {
+      filtered = filtered.filter(o => o.status?.toLowerCase() === status.toLowerCase())
+    }
     
     if (selectedDate) {
-      filtered = filtered.filter(order => {
-        const orderDate = new Date(order.orderDate).toISOString().split('T')[0]
-        return orderDate === selectedDate
-      })
+      filtered = filtered.filter(o => new Date(o.orderDate).toISOString().split('T')[0] === selectedDate)
     }
     
-    if (selectedStatus) {
-      filtered = filtered.filter(order => order.status?.toLowerCase() === selectedStatus.toLowerCase())
-    }
-    
-    return filtered
-  }
+    return sortOrders(filtered, sortBy)
+  }, [orders, orderType, selectedDate, sortBy, status])
 
   const loadOrders = async () => {
     try {
       const response = await getByRestaurant(restaurantId)
       let data = response.data?.data || response.data || []
       data = Array.isArray(data) ? data : []
-      data = sortOrders(data, sortBy)
       setOrders(data)
-      setCurrentPage(1)
     } catch (error) {
       console.error('Failed to load orders:', error)
       setOrders([])
@@ -74,7 +81,6 @@ function RestaurantOrders() {
 
   const handleSortChange = (newSort) => {
     setSortBy(newSort)
-    setOrders(sortOrders(orders, newSort))
     setCurrentPage(1)
   }
 
@@ -101,9 +107,9 @@ function RestaurantOrders() {
     }
   }
 
-  const handleUpdateStatus = async (orderId, status) => {
+  const handleUpdateStatus = async (orderId, statusVal) => {
     try {
-      await updateStatus(orderId, status)
+      await updateStatus(orderId, statusVal)
       await loadOrders()
     } catch (error) {
       console.error('Failed to update order status:', error)
@@ -111,126 +117,141 @@ function RestaurantOrders() {
     }
   }
 
-  const filteredOrders = filterOrders(orders)
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const totalPages = Math.ceil(filterAndSortOrders.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedOrders = filterAndSortOrders.slice(startIndex, startIndex + itemsPerPage)
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>Orders</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Manage and track all restaurant orders</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>Orders</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Manage and track all restaurant orders</p>
+        </div>
+        <button
+          onClick={loadOrders}
+          disabled={loading}
+          style={{
+            backgroundColor: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            borderColor: 'var(--border-color)',
+            opacity: loading ? 0.5 : 1
+          }}
+          className="p-2 rounded-lg border transition disabled:cursor-not-allowed"
+          title="Refresh orders"
+        >
+          ↻
+        </button>
       </div>
 
-      <div className="flex gap-4 flex-wrap items-center">
-        <div className="flex items-center gap-2">
-          <label style={{ color: 'var(--text-primary)' }} className="font-semibold">Sort by:</label>
-          <select
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div>
+          <label style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold block mb-2">Sort by</label>
+          <PremiumSelect
             value={sortBy}
-            onChange={(e) => handleSortChange(e.target.value)}
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-color)'
-            }}
-            className="px-4 py-2 rounded-lg font-semibold border"
-          >
-            <optgroup label="Date">
-              <option value="date-recent">Most Recent</option>
-              <option value="date-oldest">Oldest</option>
-            </optgroup>
-            <optgroup label="Amount">
-              <option value="amount-high">Highest Amount</option>
-              <option value="amount-low">Lowest Amount</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label style={{ color: 'var(--text-primary)' }} className="font-semibold">Status:</label>
-          <select
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value)
-              setCurrentPage(1)
-            }}
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-color)'
-            }}
-            className="px-4 py-2 rounded-lg font-semibold border"
-          >
-            <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Preparing">Preparing</option>
-            <option value="OutForDelivery">Out for Delivery</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label style={{ color: 'var(--text-primary)' }} className="font-semibold">Date:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => {
-              setSelectedDate(e.target.value)
-              setCurrentPage(1)
-            }}
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-color)'
-            }}
-            className="px-4 py-2 rounded-lg font-semibold border"
+            onChange={handleSortChange}
+            options={[
+              { value: 'date-recent', label: 'Most Recent' },
+              { value: 'date-oldest', label: 'Oldest' },
+              { value: 'amount-high', label: 'Highest Amount' },
+              { value: 'amount-low', label: 'Lowest Amount' }
+            ]}
           />
-          {selectedDate && (
-            <button
-              onClick={() => {
-                setSelectedDate('')
+        </div>
+
+        <div>
+          <label style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold block mb-2">Type</label>
+          <PremiumSelect
+            value={orderType}
+            onChange={(val) => {
+              setOrderType(val)
+              setCurrentPage(1)
+            }}
+            options={[
+              { value: 'all', label: 'All Orders' },
+              { value: 'active', label: 'Active Orders' },
+              { value: 'completed', label: 'Completed Orders' }
+            ]}
+          />
+        </div>
+
+        <div>
+          <label style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold block mb-2">Status</label>
+          <PremiumSelect
+            value={status}
+            onChange={(val) => {
+              setStatus(val)
+              setCurrentPage(1)
+            }}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'confirmed', label: 'Confirmed' },
+              { value: 'preparing', label: 'Preparing' },
+              { value: 'outfordelivery', label: 'Out for Delivery' },
+              { value: 'delivered', label: 'Delivered' },
+              { value: 'cancelled', label: 'Cancelled' },
+              { value: 'rejected', label: 'Rejected' }
+            ]}
+          />
+        </div>
+
+        <div>
+          <label style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold block mb-2">Date</label>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value)
                 setCurrentPage(1)
               }}
               style={{
-                backgroundColor: 'var(--primary-red)',
-                color: 'white'
+                backgroundColor: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border-color)'
               }}
-              className="px-3 py-2 rounded-lg font-semibold text-sm"
-            >
-              ✕
-            </button>
-          )}
+              className="flex-1 px-4 py-2 rounded-lg font-semibold border"
+            />
+            {selectedDate && (
+              <button
+                onClick={() => {
+                  setSelectedDate('')
+                  setCurrentPage(1)
+                }}
+                style={{
+                  backgroundColor: 'var(--primary-red)',
+                  color: 'white'
+                }}
+                className="px-3 py-2 rounded-lg font-semibold text-sm"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label style={{ color: 'var(--text-primary)' }} className="font-semibold">Show:</label>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value))
+        <div>
+          <label style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold block mb-2">Show</label>
+          <PremiumSelect
+            value={itemsPerPage.toString()}
+            onChange={(val) => {
+              setItemsPerPage(Number(val))
               setCurrentPage(1)
             }}
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-color)'
-            }}
-            className="px-4 py-2 rounded-lg font-semibold border"
-          >
-            <option value={5}>5 per page</option>
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
-          </select>
+            options={[
+              { value: '5', label: '5 per page' },
+              { value: '10', label: '10 per page' },
+              { value: '20', label: '20 per page' },
+              { value: '50', label: '50 per page' }
+            ]}
+          />
         </div>
       </div>
 
       {loading ? (
         <div className="text-center py-12" style={{ color: 'var(--text-secondary)' }}>Loading orders...</div>
-      ) : filteredOrders.length === 0 ? (
+      ) : filterAndSortOrders.length === 0 ? (
         <div className="text-center py-12 rounded-lg border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}>
           No orders found
         </div>
@@ -238,20 +259,21 @@ function RestaurantOrders() {
         <>
           <div className="space-y-4">
             {paginatedOrders.map((order) => (
-              <OrderRow
-                key={order.orderId}
-                order={order}
-                onAccept={handleAccept}
-                onReject={handleReject}
-                onUpdateStatus={handleUpdateStatus}
-              />
+              <div key={order.orderId} onClick={() => setSelectedOrder(order)} className="cursor-pointer">
+                <OrderRow
+                  order={order}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                  onUpdateStatus={handleUpdateStatus}
+                />
+              </div>
             ))}
           </div>
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
               <div style={{ color: 'var(--text-secondary)' }} className="text-sm">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filterAndSortOrders.length)} of {filterAndSortOrders.length} orders
               </div>
               <div className="flex gap-2">
                 <button
@@ -272,9 +294,10 @@ function RestaurantOrders() {
                     onClick={() => setCurrentPage(page)}
                     style={{
                       backgroundColor: currentPage === page ? 'var(--primary-red)' : 'var(--bg-secondary)',
-                      color: 'white'
+                      color: currentPage === page ? 'white' : 'var(--text-primary)',
+                      borderColor: 'var(--border-color)'
                     }}
-                    className="px-3 py-2 rounded-lg font-semibold transition"
+                    className="px-3 py-2 rounded-lg font-semibold transition border"
                   >
                     {page}
                   </button>
@@ -295,6 +318,13 @@ function RestaurantOrders() {
             </div>
           )}
         </>
+      )}
+
+      {selectedOrder && (
+        <OrderDetailsModal 
+          order={selectedOrder} 
+          onClose={() => setSelectedOrder(null)} 
+        />
       )}
     </div>
   )

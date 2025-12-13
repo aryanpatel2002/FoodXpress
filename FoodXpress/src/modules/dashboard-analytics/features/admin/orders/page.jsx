@@ -4,6 +4,7 @@ import { mockOrders } from '../../../lib/mockData.js'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card.jsx'
 import Table from '../../../components/ui/Table.jsx'
 import OrderDetailsModal from './components/OrderDetailsModal.jsx'
+import PremiumSelect from '../../../components/ui/PremiumSelect.jsx'
 import { CacheContext } from '../../../context/CacheContext.jsx'
 
 function AdminOrders() {
@@ -54,17 +55,19 @@ function AdminOrders() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>All Orders ({orders.length})</CardTitle>
-          <select 
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <div className="w-48">
+            <PremiumSelect
+              value={filter}
+              onChange={(val) => setFilter(val)}
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'confirmed', label: 'Confirmed' },
+                { value: 'delivered', label: 'Delivered' },
+                { value: 'cancelled', label: 'Cancelled' }
+              ]}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (

@@ -15,6 +15,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    console.log('API Request:', config.method.toUpperCase(), config.url)
     return config
   },
   (error) => {
@@ -24,8 +25,12 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.url, response.status, response.data)
+    return response
+  },
   (error) => {
+    console.error('API Error:', error.config?.url, error.response?.status, error.message)
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'

@@ -119,9 +119,22 @@ function RestaurantMenu() {
               borderColor: 'var(--border-color)',
               color: 'var(--text-primary)'
             }} className="rounded-xl border overflow-hidden hover:shadow-lg transition-all duration-300 shadow">
+              {item.imageUrl && (
+                <div className="h-48 overflow-hidden">
+                  <img 
+                    src={item.imageUrl} 
+                    alt={item.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+              
               <div style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }} className="p-4 border-b">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--primary-red)' }}>{item.itemName}</h3>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--primary-red)' }}>{item.name}</h3>
                   <span className={`px-3 py-1 rounded-lg text-xs font-bold ${item.isAvailable ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                     {item.isAvailable ? '✓ Available' : '✕ Unavailable'}
                   </span>

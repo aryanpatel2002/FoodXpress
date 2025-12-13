@@ -37,17 +37,29 @@ function Modal({ isOpen, onClose, children, title, size = 'md' }) {
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className={`bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 shadow-2xl shadow-cyan-500/20 ${sizes[size]} w-full max-h-[90vh] overflow-y-auto flex flex-col`}
+        className={`rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-y-auto flex flex-col`}
+        style={{
+          backgroundColor: 'var(--bg-secondary)',
+          borderColor: 'var(--border-color)'
+        }}
+        className={`rounded-2xl shadow-2xl border ${sizes[size]} w-full max-h-[90vh] overflow-y-auto flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 px-8 py-6 border-b border-slate-700 flex items-center justify-between sticky top-0 z-10">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <div 
+            className="px-8 py-6 border-b flex items-center justify-between sticky top-0 z-10"
+            style={{
+              backgroundColor: 'var(--bg-primary)',
+              borderColor: 'var(--border-color)'
+            }}
+          >
+            <h2 style={{ color: 'var(--text-primary)' }} className="text-2xl font-bold">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-cyan-400 transition text-3xl leading-none font-light"
+              style={{ color: 'var(--text-secondary)' }}
+              className="hover:text-cyan-400 transition text-3xl leading-none font-light"
               aria-label="Close modal"
             >
               ×

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Modal from '../../../../components/ui/Modal.jsx'
 import Input from '../../../../components/ui/Input.jsx'
+import FileUpload from '../../../../components/ui/FileUpload.jsx'
 
 function MenuFormModal({ isOpen, onClose, onSubmit, menuItem, categories = [] }) {
   const [formData, setFormData] = useState({
@@ -10,14 +11,21 @@ function MenuFormModal({ isOpen, onClose, onSubmit, menuItem, categories = [] })
     categoryId: '',
     isAvailable: true,
   })
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (menuItem && categories.length > 0) {
+    if (menuItem) {
+      const matchedCategory = categories.find(cat => 
+        (cat.categoryName || cat.name) === menuItem.categoryName
+      )
+      const categoryId = matchedCategory ? String(matchedCategory.categoryId) : ''
+      
       setFormData({
         itemName: menuItem.itemName || menuItem.name || '',
         description: menuItem.description || '',
         price: menuItem.price || '',
-        categoryId: String(menuItem.categoryId || ''),
+        categoryId: categoryId,
         isAvailable: menuItem.isAvailable !== undefined ? menuItem.isAvailable : true,
       })
     } else if (!menuItem) {
@@ -31,13 +39,19 @@ function MenuFormModal({ isOpen, onClose, onSubmit, menuItem, categories = [] })
     }
   }, [menuItem, categories, isOpen])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit({
-      ...formData,
-      price: parseFloat(formData.price),
-      categoryId: parseInt(formData.categoryId),
-    })
+    setIsSubmitting(true)
+    try {
+      await onSubmit({
+        ...formData,
+        price: parseFloat(formData.price),
+        categoryId: parseInt(formData.categoryId),
+        image: selectedFile
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -96,6 +110,26 @@ function MenuFormModal({ isOpen, onClose, onSubmit, menuItem, categories = [] })
           </select>
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Menu Item Image</label>
+          {menuItem?.imageUrl && (
+            <div className="mb-4">
+              <p className="text-xs text-slate-400 mb-2">Current Image:</p>
+              <img 
+                src={menuItem.imageUrl} 
+                alt={menuItem.name}
+                className="w-32 h-32 object-cover rounded-lg border border-slate-600"
+              />
+            </div>
+          )}
+          <FileUpload
+            label={menuItem?.imageUrl ? "Replace Image" : "Upload Image"}
+            onChange={setSelectedFile}
+            value={selectedFile}
+            accept="image/*"
+          />
+        </div>
+
         <div className="flex items-center gap-3 p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
           <input
             type="checkbox"
@@ -118,9 +152,10 @@ function MenuFormModal({ isOpen, onClose, onSubmit, menuItem, categories = [] })
           </button>
           <button
             type="submit"
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+            disabled={isSubmitting}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
           >
-            {menuItem ? 'Update Item' : 'Create Item'}
+            {isSubmitting ? 'Saving...' : (menuItem ? 'Update Item' : 'Create Item')}
           </button>
         </div>
       </form>

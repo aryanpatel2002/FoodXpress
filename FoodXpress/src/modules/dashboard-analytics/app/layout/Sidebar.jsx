@@ -8,9 +8,6 @@ function Sidebar({ isOpen, setIsOpen }) {
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/admin/restaurants', label: 'Restaurants', icon: '🏪' },
     { path: '/admin/users', label: 'Users', icon: '👥' },
-    { path: '/admin/menu', label: 'Menu Items', icon: '🍽️' },
-    { path: '/admin/categories', label: 'Categories', icon: '📂' },
-    { path: '/admin/orders', label: 'Orders', icon: '📦' },
     { path: '/admin/analytics', label: 'Analytics', icon: '📈' },
   ]
 
