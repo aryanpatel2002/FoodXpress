@@ -79,9 +79,9 @@ class ApiService {
     }
   }
 
-  async fetchMenuItemsByCategory(category) {
+  async fetchMenuItemsByCategory(categoryId) {
     try {
-      return await this.makeRequest(`${API_BASE_URL}/menuitems/category/${encodeURIComponent(category)}`);
+      return await this.makeRequest(`${API_BASE_URL}/menuitems/category/${categoryId}`);
     } catch (error) {
       console.error('Error fetching menu items by category:', error);
       return [];
@@ -94,6 +94,15 @@ class ApiService {
       return await this.makeRequest(`${API_BASE_URL}/categories`);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      return [];
+    }
+  }
+
+  async fetchCategoriesByRestaurant(restaurantId) {
+    try {
+      return await this.makeRequest(`${API_BASE_URL}/categories/restaurant/${restaurantId}`);
+    } catch (error) {
+      console.error('Error fetching categories by restaurant:', error);
       return [];
     }
   }
