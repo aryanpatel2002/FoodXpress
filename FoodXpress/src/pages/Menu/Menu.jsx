@@ -3,6 +3,19 @@ import "./Menu.css";
 import { ApiService } from "../../modules/home-navigation";
 import { Loader } from "../../shared";
 
+const getMenuItemEmoji = (name) => {
+  const lowerName = name.toLowerCase();
+  const emojiMap = {
+    "pizza": "🍕", "burger": "🍔", "pasta": "🍝", "noodles": "🍜", "rice": "🍚",
+    "soup": "🍲", "salad": "🥗", "sandwich": "🥪", "wrap": "🌯", "taco": "🌮",
+    "chicken": "🍗", "beef": "🥩", "fish": "🐟", "cake": "🍰", "coffee": "☕"
+  };
+  for (const [key, emoji] of Object.entries(emojiMap)) {
+    if (lowerName.includes(key)) return emoji;
+  }
+  return "🍽️";
+};
+
 const Menu = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [categories, setCategories] = useState(["All"]);
@@ -17,7 +30,8 @@ const Menu = () => {
           ApiService.fetchMenuItems()
         ]);
         
-        setCategories(["All", ...categoriesData]);
+        const categoryNames = categoriesData.map(cat => cat.name || cat);
+        setCategories(["All", ...categoryNames]);
         setMenuItems(menuData);
       } catch (error) {
         console.error('Error loading menu data:', error);
@@ -31,7 +45,7 @@ const Menu = () => {
 
   const filteredItems = selectedCategory === "All" 
     ? menuItems 
-    : menuItems.filter(item => item.category === selectedCategory);
+    : menuItems.filter(item => item.category?.name === selectedCategory || item.category === selectedCategory);
 
   return (
     <div className="menu-page">
@@ -41,9 +55,9 @@ const Menu = () => {
       </div>
 
       <div className="menu-categories">
-        {categories.map(category => (
+        {categories.map((category, index) => (
           <button
-            key={category}
+            key={`category-${index}`}
             className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
             onClick={() => setSelectedCategory(category)}
           >
@@ -59,7 +73,7 @@ const Menu = () => {
           filteredItems.map(item => (
             <div key={item.id} className="menu-item">
               <div className="item-image">
-                <img src={item.image} alt={item.name} />
+                <span className="menu-emoji">{getMenuItemEmoji(item.name)}</span>
               </div>
               <div className="item-info">
                 <h3>{item.name}</h3>

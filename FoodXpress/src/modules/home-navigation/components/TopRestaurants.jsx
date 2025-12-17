@@ -3,6 +3,27 @@ import "../styles/TopRestaurants.css";
 import ApiService from "../services/apiService";
 import { Loader } from "../../../shared";
 
+const restaurantEmojis = {
+  "biryani house": "🍚", "biryani": "🍚", "rice": "🍚", "hyderabadi": "🍚",
+  "spicy treats": "🌶️", "spicy": "🌶️", "hot": "🌶️", "chili": "🌶️", "pepper": "🌶️",
+  "pizza": "🍕", "pizzeria": "🍕", "burger": "🍔", "grill": "🔥", "bbq": "🍖",
+  "chinese": "🥢", "italian": "🍝", "mexican": "🌮", "indian": "🍛", "thai": "🍜",
+  "japanese": "🍣", "sushi": "🍣", "korean": "🍲", "cafe": "☕", "coffee": "☕",
+  "bakery": "🥖", "deli": "🥪", "bistro": "🍽️", "steakhouse": "🥩", "seafood": "🦐",
+  "taco": "🌮", "noodle": "🍜", "ramen": "🍜", "pho": "🍜", "curry": "🍛",
+  "sandwich": "🥪", "sub": "🥪", "wrap": "🌯", "salad": "🥗", "healthy": "🥗",
+  "fast": "🍟", "quick": "🍟", "express": "🍟", "drive": "🍟", "takeout": "🍟",
+  "fine": "🍽️", "dining": "🍽️", "restaurant": "🍽️", "eatery": "🍽️", "kitchen": "🍳"
+};
+
+const getRestaurantEmoji = (name) => {
+  const lowerName = name.toLowerCase();
+  for (const [key, emoji] of Object.entries(restaurantEmojis)) {
+    if (lowerName.includes(key)) return emoji;
+  }
+  return "🍽️";
+};
+
 const TopRestaurants = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +54,7 @@ const TopRestaurants = () => {
           restaurants.map((restaurant) => (
             <div key={restaurant.restaurantId} className="restaurant-card">
               <div className="restaurant-image">
-                <img src='/NavLogo.png' alt={restaurant.name} />
+                <span className="food-emoji">{getRestaurantEmoji(restaurant.name)}</span>
               </div>
               <div className="restaurant-info">
                 <h3>{restaurant.name}</h3>

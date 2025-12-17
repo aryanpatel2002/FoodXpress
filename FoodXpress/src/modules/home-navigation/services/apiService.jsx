@@ -1,8 +1,8 @@
-const API_BASE_URL = 'http://localhost:5142/api';
-const REQUEST_TIMEOUT = 10000;
+const API_BASE_URL = 'https://fxbackend.onrender.com/api';
+const REQUEST_TIMEOUT = 30000; // Increased timeout for deployed backend
 
 class ApiService {
-  async makeRequest(url, options = {}) {
+  async makeRequest(url, options = {}, retries = 2) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
@@ -10,8 +10,10 @@ class ApiService {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           ...options.headers,
         },
       });
@@ -25,8 +27,15 @@ class ApiService {
       return await response.json();
     } catch (error) {
       clearTimeout(timeoutId);
+      
+      if (retries > 0 && (error.name === 'AbortError' || error.message.includes('fetch'))) {
+        console.log(`Retrying request to ${url}, attempts left: ${retries}`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return this.makeRequest(url, options, retries - 1);
+      }
+      
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout - please check your connection');
+        throw new Error('Request timeout - backend may be starting up, please try again');
       }
       throw error;
     }
@@ -77,7 +86,9 @@ class ApiService {
 
   async fetchPopularMenuItems() {
     try {
-      return await this.makeRequest(`${API_BASE_URL}/menuitems/popular`);
+      // Fallback to regular menu items if popular endpoint doesn't exist
+      const items = await this.makeRequest(`${API_BASE_URL}/menuitems`);
+      return items.slice(0, 6); // Return first 6 as "popular"
     } catch (error) {
       console.error('Error fetching popular menu items:', error);
       // Return fallback data for development
@@ -91,7 +102,7 @@ class ApiService {
 
   async fetchMenuItemsByCategory(categoryId) {
     try {
-      return await this.makeRequest(`${API_BASE_URL}/menuitems/category/${categoryId}`);
+      return await this.makeRequest(`${API_BASE_URL}/menuitems?categoryId=${categoryId}`);
     } catch (error) {
       console.error('Error fetching menu items by category:', error);
       return [];
@@ -117,7 +128,7 @@ class ApiService {
 
   async fetchCategoriesByRestaurant(restaurantId) {
     try {
-      return await this.makeRequest(`${API_BASE_URL}/categories/restaurant/${restaurantId}`);
+      return await this.makeRequest(`${API_BASE_URL}/categories?restaurantId=${restaurantId}`);
     } catch (error) {
       console.error('Error fetching categories by restaurant:', error);
       return [];

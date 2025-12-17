@@ -3,13 +3,62 @@ import "../styles/FeaturedCategories.css";
 import ApiService from "../services/apiService";
 import { Loader } from "../../../shared";
 
-const categoryImages = {
-  "Pizza": "/Pizza.png",
-  "Burgers": "/Burger.png",
-  "Desserts": "/Dessert.png",
-  "Healthy Meals": "/HealthyMeals.png",
-  "Drinks": "/Drinks.png",
-  "South Indian": "/South.png",
+const categoryEmojis = {
+  "Starters": "🥟",
+  "starters": "🥟",
+  "Main Course": "🍽️",
+  "Pizzas": "🍕",
+  "Sides": "🍟",
+  "Healthy Bowls": "🥗",
+  "Burgers": "🍔",
+  "Beverages": "🥤",
+  "Desserts": "🍰",
+  "Pasta": "🍝",
+  "Noodles": "🍜",
+  "Rice": "🍚",
+  "Soup": "🍲",
+  "Salads": "🥗",
+  "Sandwiches": "🥪",
+  "Wraps": "🌯",
+  "Tacos": "🌮",
+  "Sushi": "🍣",
+  "Seafood": "🦐",
+  "Chicken": "🍗",
+  "Beef": "🥩",
+  "Pork": "🥓",
+  "Vegetarian": "🥕",
+  "Vegan": "🌱",
+  "Breakfast": "🥞",
+  "Brunch": "🧇",
+  "Lunch": "🍱",
+  "Dinner": "🍽️",
+  "Snacks": "🍿",
+  "Appetizers": "🥨",
+  "Coffee": "☕",
+  "Tea": "🍵",
+  "Juice": "🧃",
+  "Smoothies": "🥤",
+  "Milkshakes": "🥛",
+  "Ice Cream": "🍦",
+  "Frozen Yogurt": "🍧",
+  "Cakes": "🎂",
+  "Cookies": "🍪",
+  "Pastries": "🥐",
+  "Bread": "🍞",
+  "Bakery": "🥖",
+  "Chinese": "🥢",
+  "Italian": "🍝",
+  "Mexican": "🌮",
+  "Indian": "🍛",
+  "Thai": "🍜",
+  "Japanese": "🍣",
+  "Korean": "🍲",
+  "Mediterranean": "🫒",
+  "BBQ": "🍖",
+  "Grilled": "🔥",
+  "Fried": "🍟",
+  "Steamed": "🥟",
+  "Baked": "🥧"
 };
 
 const FeaturedCategories = () => {
@@ -20,10 +69,11 @@ const FeaturedCategories = () => {
     const fetchCategories = async () => {
       try {
         const data = await ApiService.fetchCategories();
-        const categoriesWithImages = data.map((category, index) => ({
-          id: index + 1,
-          name: typeof category === 'string' ? category : category.name,
-          image: categoryImages[typeof category === 'string' ? category : category.name] || "/NavLogo.png"
+        const categoriesWithImages = data.map((category) => ({
+          id: category.categoryId,
+          name: category.name,
+          emoji: categoryEmojis[category.name] || "🍽️",
+          restaurantId: category.restaurantId
         }));
         setCategories(categoriesWithImages);
       } catch (error) {
@@ -50,7 +100,7 @@ const FeaturedCategories = () => {
             duplicatedCategories.map((cat, index) => (
               <div key={`${cat.id}-${index}`} className="category-card">
                 <div className="category-icon">
-                  <img src={cat.image} alt={cat.name} />
+                  <span className="category-emoji">{cat.emoji}</span>
                 </div>
                 <p>{cat.name}</p>
               </div>
