@@ -1,4 +1,4 @@
-const HOME_API_BASE_URL = 'http://localhost:5142/api';
+const HOME_API_BASE_URL = 'https://fxbackend.onrender.com/api';
 
 class CartService {
   async addItem(data) {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const AUTH_API = 'http://localhost:5094/api';
+const AUTH_API = 'https://foodorderingsystem-authentication.onrender.com/api';
 
 const authAPI = axios.create({
   baseURL: AUTH_API,
