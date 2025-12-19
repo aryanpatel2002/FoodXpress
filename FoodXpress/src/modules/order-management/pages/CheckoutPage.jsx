@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkoutApi, locationApi } from '../services/orderService.jsx';
 import '../styles/shared.css';
+import '../styles/CheckoutPage.css';
 
 const CheckoutPage = () => {
   const [checkout, setCheckout] = useState(null);
@@ -17,6 +18,7 @@ const CheckoutPage = () => {
     pinCode: ''
   });
   const [paymentMethod, setPaymentMethod] = useState('CashOnDelivery');
+  const [placingOrder, setPlacingOrder] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,189 +73,252 @@ const CheckoutPage = () => {
       return;
     }
 
-    try {
-      const response = await checkoutApi.placeOrder({
-        addressId: selectedAddress,
-        newAddress: showNewAddress ? newAddress : undefined,
-        paymentMethod
-      });
-      console.log('Checkout response:', response);
-      const orderId = response?.orderId || response?.data?.orderId;
-      console.log('Order ID:', orderId);
-      if (orderId) {
-        navigate(`/order-tracking/${orderId}`);
-      } else {
-        alert('Order created but no order ID returned');
+    if (showNewAddress) {
+      if (!newAddress.addressLine || !newAddress.state || !newAddress.city || !newAddress.pinCode) {
+        alert('Please fill all address fields');
+        return;
       }
+    }
+
+    const orderData = {
+      addressId: selectedAddress,
+      newAddress: showNewAddress ? newAddress : undefined,
+      paymentMethod
+    };
+    console.log('Sending order data:', orderData);
+
+    setPlacingOrder(true);
+    try {
+      const response = await checkoutApi.placeOrder(orderData);
+      console.log('Order response:', response);
+      navigate('/orders');
     } catch (err) {
       console.error('Error placing order:', err);
-      alert('Failed to place order. Please try again.');
+      alert(`Failed to place order: ${err.message}`);
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading checkout...</div>;
-  if (!checkout) return <div style={{ padding: '40px', textAlign: 'center' }}>Error loading checkout.</div>;
-
-  const inputStyle = {
-    width: '100%',
-    padding: '12px',
-    marginBottom: '12px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-    backgroundColor: '#ffffff',
-    color: '#000000'
-  };
-
-  const formContainerStyle = {
-    backgroundColor: '#f9f9f9',
-    padding: '20px',
-    borderRadius: '8px',
-    marginTop: '15px',
-    border: '1px solid #e0e0e0'
-  };
-
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px'
-  };
+  if (loading) {
+    return (
+      <div className="checkout-page">
+        <div className="checkout-container">
+          <div className="checkout-loading">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading checkout...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!checkout) {
+    return (
+      <div className="checkout-page">
+        <div className="checkout-container">
+          <div className="checkout-error">
+            <div className="error-icon">⚠</div>
+            <div className="error-text">Error loading checkout. Please try again.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="checkout-page">
-      <div className="container">
-        <h1>Checkout</h1>
+      <div className="checkout-container">
+        <div className="checkout-header">
+          <h1 className="checkout-title">Checkout</h1>
+          <p className="checkout-subtitle">Review your order and complete your purchase</p>
+        </div>
 
-        <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ccc' }}>
-          <h2>Delivery Address</h2>
-          {checkout.savedAddresses?.length > 0 ? (
-            <>
-              {checkout.savedAddresses.map((addr) => (
-                <div key={addr.addressId} style={{ marginBottom: '10px' }}>
-                  <label>
-                    <input
-                      type="radio"
-                      name="address"
-                      checked={selectedAddress === addr.addressId}
-                      onChange={() => {
-                        setSelectedAddress(addr.addressId);
-                        setShowNewAddress(false);
-                      }}
-                    />
-                    {addr.addressLine}, {addr.city}, {addr.state} - {addr.pinCode}
-                  </label>
-                </div>
-              ))}
-            </>
-          ) : (
-            <p>No saved addresses</p>
-          )}
+        {/* Delivery Address Section */}
+        <div className="checkout-section">
+          <div className="section-header">
+            <div className="section-icon">📍</div>
+            <h2 className="section-title">Delivery Address</h2>
+          </div>
           
-          <div style={{ marginTop: '15px' }}>
-            <label>
+          <div className="address-options">
+            {checkout.savedAddresses?.length > 0 ? (
+              checkout.savedAddresses.map((addr) => (
+                <div 
+                  key={addr.addressId} 
+                  className={`address-option ${selectedAddress === addr.addressId ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedAddress(addr.addressId);
+                    setShowNewAddress(false);
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="address"
+                    className="address-radio"
+                    checked={selectedAddress === addr.addressId}
+                    onChange={() => {
+                      setSelectedAddress(addr.addressId);
+                      setShowNewAddress(false);
+                    }}
+                  />
+                  <div className="address-content">
+                    <p className="address-text">
+                      {addr.addressLine}, {addr.city}, {addr.state} - {addr.pinCode}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted">No saved addresses found</p>
+            )}
+            
+            <div 
+              className={`new-address-option ${showNewAddress ? 'selected' : ''}`}
+              onClick={() => setShowNewAddress(true)}
+            >
               <input
                 type="radio"
                 name="address"
+                className="address-radio"
                 checked={showNewAddress}
                 onChange={() => setShowNewAddress(true)}
               />
-              Add New Address
-            </label>
-          </div>
-
-          {showNewAddress && (
-            <div style={formContainerStyle}>
-              <div style={gridStyle}>
-                <input
-                  type="text"
-                  placeholder="Address Line"
-                  value={newAddress.addressLine}
-                  onChange={(e) => setNewAddress({...newAddress, addressLine: e.target.value})}
-                  style={{...inputStyle, gridColumn: '1 / -1'}}
-                />
-                <select
-                  value={newAddress.state}
-                  onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
-                  style={inputStyle}
-                >
-                  <option value="">Select State</option>
-                  {states.map((state) => (
-                    <option key={state.stateId} value={state.stateId}>
-                      {state.stateName}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={newAddress.city}
-                  onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
-                  style={inputStyle}
-                  disabled={!newAddress.state}
-                >
-                  <option value="">Select City</option>
-                  {cities.map((city) => (
-                    <option key={city.cityId} value={city.cityId}>
-                      {city.cityName}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Pin Code"
-                  value={newAddress.pinCode}
-                  onChange={(e) => setNewAddress({...newAddress, pinCode: e.target.value})}
-                  style={inputStyle}
-                />
-              </div>
+              <div className="add-icon">+</div>
+              <span className="text-base font-medium">Add New Address</span>
             </div>
-          )}
+
+            {showNewAddress && (
+              <div className="new-address-form">
+                <div className="form-grid">
+                  <div className="form-group full-width">
+                    <label className="form-label">Address Line</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Enter your full address"
+                      value={newAddress.addressLine}
+                      onChange={(e) => setNewAddress({...newAddress, addressLine: e.target.value})}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">State</label>
+                    <select
+                      className="form-select"
+                      value={newAddress.state}
+                      onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
+                    >
+                      <option value="">Select State</option>
+                      {states.map((state) => (
+                        <option key={state.stateId} value={state.stateId}>
+                          {state.stateName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">City</label>
+                    <select
+                      className="form-select"
+                      value={newAddress.city}
+                      onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
+                      disabled={!newAddress.state}
+                    >
+                      <option value="">Select City</option>
+                      {cities.map((city) => (
+                        <option key={city.cityId} value={city.cityId}>
+                          {city.cityName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Pin Code</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Enter pin code"
+                      value={newAddress.pinCode}
+                      onChange={(e) => setNewAddress({...newAddress, pinCode: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ccc' }}>
-          <h2>Payment Method</h2>
-          {checkout.paymentOptions?.map((option) => (
-            <div key={option.method} style={{ marginBottom: '10px' }}>
-              <label>
+        {/* Payment Method Section */}
+        <div className="checkout-section">
+          <div className="section-header">
+            <div className="section-icon">💳</div>
+            <h2 className="section-title">Payment Method</h2>
+          </div>
+          
+          <div className="payment-options">
+            {checkout.paymentOptions?.map((option) => (
+              <div 
+                key={option.method} 
+                className={`payment-option ${paymentMethod === option.method ? 'selected' : ''}`}
+                onClick={() => setPaymentMethod(option.method)}
+              >
                 <input
                   type="radio"
                   name="payment"
+                  className="payment-radio"
                   value={option.method}
                   checked={paymentMethod === option.method}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 />
-                {option.icon} {option.displayName}
-              </label>
-            </div>
-          ))}
+                <span className="payment-icon">{option.icon}</span>
+                <span className="payment-text">{option.displayName}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #ccc' }}>
-          <h2>Order Summary</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>Subtotal:</span>
-            <span>₹{checkout.subTotal?.toFixed(2) || '0.00'}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>Delivery:</span>
-            <span>₹{checkout.deliveryFee?.toFixed(2) || '0.00'}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>Tax:</span>
-            <span>₹{checkout.taxAmount?.toFixed(2) || '0.00'}</span>
-          </div>
-          {checkout.discountAmount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>Discount:</span>
-              <span>-₹{checkout.discountAmount?.toFixed(2)}</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-            <span>Total:</span>
-            <span>₹{checkout.totalAmount?.toFixed(2) || '0.00'}</span>
+        {/* Order Summary Section */}
+        <div className="checkout-section order-summary">
+          <div className="section-header">
+            <div className="section-icon">📋</div>
+            <h2 className="section-title">Order Summary</h2>
           </div>
           
-          <button onClick={handlePlaceOrder} style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%' }}>
-            Place Order
+          <div className="summary-items">
+            <div className="summary-item">
+              <span className="summary-label">Subtotal</span>
+              <span className="summary-value">₹{checkout.subTotal?.toFixed(2) || '0.00'}</span>
+            </div>
+            <div className="summary-item">
+              <span className="summary-label">Delivery Fee</span>
+              <span className="summary-value">₹{checkout.deliveryFee?.toFixed(2) || '0.00'}</span>
+            </div>
+            <div className="summary-item">
+              <span className="summary-label">Tax</span>
+              <span className="summary-value">₹{checkout.taxAmount?.toFixed(2) || '0.00'}</span>
+            </div>
+            {checkout.discountAmount > 0 && (
+              <div className="summary-item summary-discount">
+                <span className="summary-label">Discount</span>
+                <span className="summary-value">-₹{checkout.discountAmount?.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="summary-total">
+            <span className="total-label">Total</span>
+            <span className="total-value">₹{checkout.totalAmount?.toFixed(2) || '0.00'}</span>
+          </div>
+          
+          <button onClick={handlePlaceOrder} className="place-order-btn" disabled={placingOrder}>
+            {placingOrder ? (
+              <>
+                <div className="loading-spinner"></div>
+                Placing Order...
+              </>
+            ) : (
+              '🛒 Place Order'
+            )}
           </button>
         </div>
       </div>

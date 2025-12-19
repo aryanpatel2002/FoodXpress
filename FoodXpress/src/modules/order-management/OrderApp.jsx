@@ -33,9 +33,7 @@ const OrderApp = () => {
     );
   }
   
-  if (location.pathname.startsWith('/order-status') || 
-      location.pathname.startsWith('/order-summary') || 
-      location.pathname.startsWith('/order-tracking')) {
+  if (location.pathname.startsWith('/order-tracking')) {
     return (
       <div className="order-management-app">
         <OrderStatusPage />

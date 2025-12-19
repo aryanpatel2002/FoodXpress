@@ -82,8 +82,6 @@ function AppContent() {
           <Route path="/cart/*" element={<OrderApp />} />
           <Route path="/checkout/*" element={<OrderApp />} />
           <Route path="/orders/*" element={<OrderApp />} />
-          <Route path="/order-status/*" element={<OrderApp />} />
-          <Route path="/order-summary/*" element={<OrderApp />} />
           <Route path="/order-tracking/*" element={<OrderApp />} />
         </Routes>
       </ErrorBoundary>
