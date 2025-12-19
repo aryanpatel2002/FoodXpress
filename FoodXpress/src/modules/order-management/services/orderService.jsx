@@ -160,15 +160,20 @@ export const checkoutApi = {
       body: JSON.stringify(promoCode)
     }).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)));
   },
-  placeOrder: (data) => {
+  placeOrder: async (data) => {
     const userId = getUserId();
     const token = getToken();
     if (!userId) throw new Error('User not authenticated');
-    return fetch(`${LOCAL_API_BASE_URL}/checkout?userId=${userId}`, {
+    const response = await fetch(`${LOCAL_API_BASE_URL}/checkout?userId=${userId}`, {
       method: 'POST',
       headers: getHeaders(token),
       body: JSON.stringify(data)
-    }).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)));
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP ${response.status}`);
+    }
+    return response.json();
   }
 };
 

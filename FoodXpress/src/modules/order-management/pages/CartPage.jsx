@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CartItem from '../components/CartItem.jsx';
 import { cartApi } from '../services/orderService.jsx';
 import '../styles/shared.css';
+import '../styles/CartPage.css';
 
 const CartPage = () => {
   const [cart, setCart] = useState(null);
@@ -15,7 +16,8 @@ const CartPage = () => {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const tokenUsername = payload.unique_name || payload.name || payload.username;
+        console.log('Token payload:', payload); // Debug log
+        const tokenUsername = payload.unique_name || payload.name || payload.username || payload.sub || payload.email || payload.user_name || payload.userName;
         if (tokenUsername) {
           return tokenUsername;
         }
@@ -100,20 +102,44 @@ const CartPage = () => {
     }
   };
 
-  if (loading) return <div className="loading" style={{ padding: '40px', textAlign: 'center' }}>Loading cart...</div>;
+  if (loading) {
+    return (
+      <div className="cart-page">
+        <div className="cart-container">
+          <div className="cart-loading">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading your cart...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isEmpty = !cart || (cart.items || []).length === 0;
 
   if (isEmpty) {
     return (
       <div className="cart-page">
-        <div className="container">
-          <div className="page-header">
-            <h1>Welcome {username} to Cart</h1>
+        <div className="cart-container">
+          <div className="cart-page-header">
+            <h1 className="cart-welcome-title">Welcome to Cart</h1>
+            <button 
+              onClick={() => navigate('/orders')} 
+              className="order-history-btn"
+            >
+              📋 Order History
+            </button>
           </div>
-          <div className="empty-cart" style={{ textAlign: 'center', padding: '40px' }}>
-            <h2>Your cart is empty</h2>
-            <p>Add food items to your cart to continue</p>
+          <div className="empty-cart">
+            <div className="empty-cart-icon">🛒</div>
+            <h2 className="empty-cart-title">Your cart is empty</h2>
+            <p className="empty-cart-subtitle">Discover delicious food items and add them to your cart to get started</p>
+            <button 
+              onClick={() => navigate('/menu')} 
+              className="browse-menu-btn"
+            >
+              🍽️ Browse Menu
+            </button>
           </div>
         </div>
       </div>
@@ -122,12 +148,21 @@ const CartPage = () => {
 
   return (
     <div className="cart-page">
-      <div className="container">
-        <div className="page-header">
-          <h1>Welcome {username} to Cart ({cart.totalItems} items)</h1>
+      <div className="cart-container">
+        <div className="cart-page-header">
+          <h1 className="cart-welcome-title">Welcome to Cart</h1>
+          <button 
+            onClick={() => navigate('/orders')} 
+            className="order-history-btn"
+          >
+            📋 Order History
+          </button>
         </div>
 
         <div className="items-section">
+          <div className="items-header">
+            <h2 className="items-title">Your Items</h2>
+          </div>
           {(cart.items || []).map((item) => (
             <CartItem 
               key={item.cartItemId} 
@@ -139,20 +174,33 @@ const CartPage = () => {
         </div>
 
         <div className="cart-summary">
-          <div className="summary-line">
-            <span>Subtotal: ₹{cart.subTotal.toFixed(2)}</span>
+          <div className="summary-header">
+            <div className="summary-icon">📋</div>
+            <h2 className="summary-title">Order Summary</h2>
           </div>
-          <div className="summary-line">
-            <span>Delivery: ₹{cart.deliveryFee.toFixed(2)}</span>
+          
+          <div className="summary-items">
+            <div className="summary-line">
+              <span className="summary-label">Subtotal</span>
+              <span className="summary-value">₹{cart.subTotal.toFixed(2)}</span>
+            </div>
+            <div className="summary-line">
+              <span className="summary-label">Delivery Fee</span>
+              <span className="summary-value">₹{cart.deliveryFee.toFixed(2)}</span>
+            </div>
+            <div className="summary-line">
+              <span className="summary-label">Tax</span>
+              <span className="summary-value">₹{cart.taxAmount.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="summary-line">
-            <span>Tax: ₹{cart.taxAmount.toFixed(2)}</span>
+          
+          <div className="summary-total">
+            <span className="total-label">Total</span>
+            <span className="total-value">₹{cart.totalAmount.toFixed(2)}</span>
           </div>
-          <div className="summary-line total">
-            <span>Total: ₹{cart.totalAmount.toFixed(2)}</span>
-          </div>
-          <button onClick={() => navigate('/checkout')} className="btn btn-primary">
-            Proceed to Checkout
+          
+          <button onClick={() => navigate('/checkout')} className="checkout-btn">
+            🚀 Proceed to Checkout
           </button>
         </div>
       </div>

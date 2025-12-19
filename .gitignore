@@ -30,6 +30,44 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+<<<<<<< HEAD
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+=======
 # Build outputs
 build/
 out/
@@ -45,3 +83,4 @@ ehthumbs.db
 # Temporary files
 *.tmp
 *.temp
+>>>>>>> 323dc17fa2928fb0e88d61528c380b1648f9c0e1
