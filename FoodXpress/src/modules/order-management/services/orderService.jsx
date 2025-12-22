@@ -146,7 +146,9 @@ export const checkoutApi = {
     const userId = getUserId();
     const token = getToken();
     if (!userId) throw new Error('User not authenticated');
-    return fetch(`${LOCAL_API_BASE_URL}/checkout/summary?userId=${userId}`, {
+    // Add timestamp to prevent caching
+    const timestamp = Date.now();
+    return fetch(`${LOCAL_API_BASE_URL}/checkout/summary?userId=${userId}&_t=${timestamp}`, {
       headers: getHeaders(token)
     }).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)));
   },

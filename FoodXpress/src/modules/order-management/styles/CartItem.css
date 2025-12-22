@@ -15,6 +15,24 @@
   overflow: hidden;
 }
 
+/* ===== ITEM THUMBNAIL ===== */
+.item-thumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-md);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.food-emoji {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
 .cart-item::before {
   content: '';
   position: absolute;

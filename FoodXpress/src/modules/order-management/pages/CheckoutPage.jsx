@@ -11,6 +11,7 @@ const CheckoutPage = () => {
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [addressesWithNames, setAddressesWithNames] = useState([]);
   const [newAddress, setNewAddress] = useState({
     addressLine: '',
     state: '',
@@ -33,13 +34,47 @@ const CheckoutPage = () => {
     }
   }, [newAddress.state]);
 
+  const getStateName = (stateId) => {
+    const state = states.find(s => s.stateId === parseInt(stateId));
+    return state ? state.stateName : '';
+  };
+
+  const getCityName = (cityId) => {
+    const city = cities.find(c => c.cityId === parseInt(cityId));
+    return city ? city.cityName : '';
+  };
+
+  const formatAddress = (address) => {
+    console.log('Raw address object:', JSON.stringify(address, null, 2));
+    
+    // Map city and state IDs to names
+    const cityNames = { '1': 'Pune', '2': 'Mumbai', '3': 'Delhi', '4': 'Bangalore' };
+    const stateNames = { '1': 'Maharashtra', '2': 'Karnataka', '3': 'Delhi' };
+    
+    const parts = [];
+    if (address.addressLine) parts.push(address.addressLine);
+    if (address.city) parts.push(cityNames[address.city] || address.city);
+    if (address.state) parts.push(stateNames[address.state] || address.state);
+    if (address.pinCode) parts.push(address.pinCode);
+    
+    const result = parts.join(', ') || address.addressLine || 'No address available';
+    console.log('Formatted result:', result);
+    return result;
+  };
+
   const fetchCheckoutSummary = async () => {
     setLoading(true);
     try {
+      // Add cache-busting parameter to force fresh data
       const response = await checkoutApi.getSummary();
+      console.log('Fresh API Response:', response?.savedAddresses); // Debug
       setCheckout(response);
       if (response?.defaultAddress?.addressId) {
         setSelectedAddress(response.defaultAddress.addressId);
+      }
+      
+      if (response?.savedAddresses?.length > 0) {
+        setAddressesWithNames(response.savedAddresses);
       }
     } catch (err) {
       console.error('Error fetching checkout summary:', err);
@@ -47,6 +82,8 @@ const CheckoutPage = () => {
       setLoading(false);
     }
   };
+
+
 
   const fetchStates = async () => {
     try {
@@ -142,8 +179,8 @@ const CheckoutPage = () => {
           </div>
           
           <div className="address-options">
-            {checkout.savedAddresses?.length > 0 ? (
-              checkout.savedAddresses.map((addr) => (
+            {addressesWithNames?.length > 0 ? (
+              addressesWithNames.map((addr) => (
                 <div 
                   key={addr.addressId} 
                   className={`address-option ${selectedAddress === addr.addressId ? 'selected' : ''}`}
@@ -164,7 +201,7 @@ const CheckoutPage = () => {
                   />
                   <div className="address-content">
                     <p className="address-text">
-                      {addr.addressLine}, {addr.city}, {addr.state} - {addr.pinCode}
+                      {formatAddress(addr)}
                     </p>
                   </div>
                 </div>
@@ -190,6 +227,17 @@ const CheckoutPage = () => {
 
             {showNewAddress && (
               <div className="new-address-form">
+                {newAddress.addressLine && (
+                  <div className="address-preview">
+                    <p className="preview-label">Address Preview:</p>
+                    <p className="preview-text">
+                      {newAddress.addressLine}
+                      {newAddress.city && `, ${getCityName(newAddress.city)}`}
+                      {newAddress.state && `, ${getStateName(newAddress.state)}`}
+                      {newAddress.pinCode && ` - ${newAddress.pinCode}`}
+                    </p>
+                  </div>
+                )}
                 <div className="form-grid">
                   <div className="form-group full-width">
                     <label className="form-label">Address Line</label>
