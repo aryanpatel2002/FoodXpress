@@ -30,7 +30,7 @@ export default function AuthPage() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'orange',
+    background: 'var(--bg-secondary)',
     padding: '2rem'
   };
 
@@ -44,8 +44,8 @@ export default function AuthPage() {
 
   const tabsStyle = {
     display: 'flex',
-    marginBottom: '2rem',
-    background: 'white',
+    marginBottom: '0rem',
+    background: 'var(--bg-primary)',
     borderRadius: '12px',
     padding: '4px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
@@ -75,7 +75,7 @@ export default function AuthPage() {
   };
 
   const userTypeSelectorStyle = {
-    background: 'white',
+    background: 'var(--bg-primary)',
     padding: '1.5rem',
     borderRadius: '12px',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
@@ -91,7 +91,7 @@ export default function AuthPage() {
     borderRadius: '8px',
     fontSize: '1rem',
     fontFamily: 'var(--font-family)',
-    background: 'white',
+    background: 'var(--bg-primary)',
     color: 'black'
   };
 
@@ -124,7 +124,9 @@ export default function AuthPage() {
         </div>
 
         {mode === 'login' ? (
-          <LoginForm onSuccess={handleLoginSuccess} />
+          <div style={{ marginTop: '0.25rem' }}>
+            <LoginForm onSuccess={handleLoginSuccess} />
+          </div>
         ) : (
           <>
             <div style={userTypeSelectorStyle}>
@@ -136,8 +138,6 @@ export default function AuthPage() {
               >
                 <option value="customer">Customer</option>
                 <option value="restaurant">Restaurant</option>
-                <option value="admin">Admin</option>
-                <option value="delivery">Delivery Boy</option>
               </select>
             </div>
             <RegisterForm userType={userType} onSuccess={handleRegisterSuccess} />

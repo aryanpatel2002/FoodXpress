@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { validateEmail, validatePhone, validatePassword, validateFullName, validateConfirmPassword, calculatePasswordStrength } from '../utils/validators.js';
+import { getStates, getCities } from '../services/cacheService.js';
 
 export default function RegisterForm({ userType = 'customer', onSuccess }) {
   const { registerCustomer, registerRestaurant, registerAdmin, registerDeliveryBoy, loading, error } = useAuth();
@@ -26,26 +27,25 @@ export default function RegisterForm({ userType = 'customer', onSuccess }) {
   const [filteredCities, setFilteredCities] = useState([]);
 
   useEffect(() => {
-    // Fetch states and cities on component mount
-    const fetchStatesAndCities = async () => {
-      try {
-        const [statesResponse, citiesResponse] = await Promise.all([
-          fetch('https://foodorderingsystem-authentication.onrender.com/api/State/get'),
-          fetch('https://foodorderingsystem-authentication.onrender.com/api/City/get')
-        ]);
-        
-        const statesData = await statesResponse.json();
-        const citiesData = await citiesResponse.json();
-        
-        setStates(statesData.filter(state => state.isActive));
-        setCities(citiesData.filter(city => city.isActive));
-      } catch (error) {
-        console.error('Error fetching states and cities:', error);
-      }
-    };
-    
-    fetchStatesAndCities();
-  }, []);
+    // Only fetch states and cities when userType is restaurant
+    if (userType === 'restaurant') {
+      const fetchData = async () => {
+        try {
+          const [statesData, citiesData] = await Promise.all([
+            getStates(),
+            getCities()
+          ]);
+          
+          setStates(statesData);
+          setCities(citiesData);
+        } catch (error) {
+          console.error('Error fetching states and cities:', error);
+        }
+      };
+      
+      fetchData();
+    }
+  }, [userType]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -176,7 +176,7 @@ export default function RegisterForm({ userType = 'customer', onSuccess }) {
   };
 
   const authCardStyle = {
-    background: 'white',
+    background: 'var(--bg-primary)',
     padding: '2rem',
     borderRadius: '12px',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
@@ -475,7 +475,7 @@ export default function RegisterForm({ userType = 'customer', onSuccess }) {
                 disabled={loading}
                 style={passwordToggleStyle}
               >
-                {showPassword ? '👁️' : '👁️🗨️'}
+                {showPassword ? '👁️' : '👁️'}
               </button>
             </div>
             {fieldErrors.password && (
@@ -523,7 +523,7 @@ export default function RegisterForm({ userType = 'customer', onSuccess }) {
                 disabled={loading}
                 style={passwordToggleStyle}
               >
-                {showConfirmPassword ? '👁️' : '👁️🗨️'}
+                {showConfirmPassword ? '👁️' : '👁️'}
               </button>
             </div>
             {fieldErrors.confirmPassword && (

@@ -67,12 +67,12 @@ export default function LoginForm({ onSuccess }) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'white',
+    background: 'var(--bg-secondary)',
     padding: '2rem'
   };
 
   const authCardStyle = {
-    background: 'white',
+    background: 'var(--bg-primary)',
     padding: '2rem',
     borderRadius: '12px',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
