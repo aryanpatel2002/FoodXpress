@@ -121,8 +121,6 @@ The codebase is built on these foundational principles:
 
 This project is intended for educational and demonstration purposes as a team project template.
 
----
-
 ```
 
 ```
