@@ -1,5 +1,4 @@
-```markdown
-# 🍔 FoodXpress – Modular React Food Delivery Application
+🍔 FoodXpress – Modular React Food Delivery Application
 
 FoodXpress is a scalable, professional, and modular **React-based food delivery application** designed for efficient collaborative, team-based development.
 
@@ -120,7 +119,3 @@ The codebase is built on these foundational principles:
 ## 📄 License
 
 This project is intended for educational and demonstration purposes as a team project template.
-
-```
-
-```
